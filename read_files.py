@@ -17,7 +17,8 @@ import csv
 
 regex_words = r"\w[\w']*"
 
-yes = {'yes', 'y', 'ye'}
+yes = {'yes', 'y', 'ye', 'yea'}
+
 articles = ['a', 'about', 'above', 'across', 'after', 'against', 'all', 'along', 'among', 'around', 'an', 'and', 'are',
             'as', 'at', 'be', 'between', 'because', 'been', 'before', 'behind', 'below', 'beneath', 'beside', 'between',
             'beyond', 'but', 'by', 'concerning', 'can', 'despite', 'down', 'during', 'except', 'excepting',
