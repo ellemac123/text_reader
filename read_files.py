@@ -7,8 +7,17 @@ from operator import itemgetter
 regex_words = r"\w[\w']*"
 regex_sentence = r'[^.?!]*(?<=[.?\s!,])%s(?=[\s,.?!])[^.?!]*[.?!]'
 
-yes = {'yes', 'y', 'ye', ''}
-no = {'no', 'n'}
+yes = {'yes', 'y', 'ye'}
+articles = ['a', 'about', 'above', 'across', 'after', 'against', 'all', 'along', 'among', 'around', 'an', 'and', 'are',
+            'as', 'at', 'be', 'between', 'because', 'been', 'before', 'behind', 'below', 'beneath', 'beside', 'between',
+            'beyond', 'but', 'by', 'concerning', 'can', 'despite', 'down', 'during', 'except', 'excepting',
+            'for', 'from', 'i', 'if', 'in', 'inside', 'instead', 'into', 'it', 'is', 'like', 'my', 'mine', 'me', 'near',
+            'not', 'nor', 'has', 'have', 'he', 'here', 'hers', 'his', 'of', 'off', 'on', 'onto', 'out', 'outside',
+            'our', 'ours', 'or', 'over', 'past', 'regarding', 'since', 'so', 'she', 'than', 'that', 'this',
+            'then', 'the', 'they', 'their', 'theirs', 'there',
+            'these', 'through', 'throughout', 'to', 'toward', 'under', 'underneath', 'until', 'up', 'upon', 'us', 'was',
+            'we', 'what', 'who', 'when', 'where', 'why', 'will', 'with', 'within', 'without' 'would', 'you'
+            ]
 
 
 # regex_sentence = r'([^.]*\b%s\b[^.]*)'
@@ -23,10 +32,15 @@ def read_files(document):
     return {'document': document, 'words': words, 'data': data}
 
 
-def most_common(word_list):
+def most_common(word_list, flag):
     word_count = Counter(word_list)
 
     print(word_count.most_common(10))
+
+    if not flag:
+        for item in articles:
+            word_count.pop(item, None)
+
     return word_count
 
 
@@ -37,12 +51,14 @@ def build_dictionary(word_list, count):
         values = dict()
         values['word'] = key
         values['count'] = value
-        sentences = ''
+        sentences = []
         temp = ''
         for docs in word_list:
             if key in docs['words']:
                 temp = temp + ',' + docs['document'].replace(directory + '/', '')
-                sentences = sentences + ','.join(s for s in docs['data'] if key in s)
+                sentences.extend(
+                    s for s in docs['data'] if
+                    ' ' + key + ' ' in s or ' ' + key + ',' in s or s.endswith(' ' + key) or s.startswith(key + ' '))
                 # split = docs['data'].split('.')
                 # sentences.extend(re.findall(regex_sentence % key, docs['data']))
         values['documents'] = temp.lstrip(',')
@@ -57,9 +73,8 @@ def print_table(list):
 
     list = sorted(list, key=itemgetter('count'), reverse=True)
 
-    print(list[0])
-    # for key in list:
-    #     print(key)
+    for key in list:
+        print(key)
 
 
 if __name__ == '__main__':
@@ -67,7 +82,7 @@ if __name__ == '__main__':
     words = []
     word_list = []
 
-    choice = input('Would you like to include articles in your search? (y/n)').lower()
+    choice = input('Would you like to include articles, pronouns, and prepositions in your search? (y/n)').lower()
     if choice in yes:
         flag = True
     else:
@@ -77,7 +92,7 @@ if __name__ == '__main__':
         doc = read_files(directory + '/' + document)
         words.extend(doc['words'])
         word_list.append(doc)
-    count = most_common(words)
+    count = most_common(words, flag)
 
     values = build_dictionary(word_list, count)
 
