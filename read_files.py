@@ -1,3 +1,13 @@
+"""
+ Laura Macaluso -- lauramacaluso1@gmail.com
+
+ Programming challenge for Eigen Technologies.
+
+ In the attached documents, find the most common occurring words, and the sentences where they are used to create the following table:
+
+ The output is written to the screen as a pandas dataframe and also a CSV file.
+"""
+
 import os
 import re
 from collections import Counter
@@ -6,7 +16,6 @@ from operator import itemgetter
 import csv
 
 regex_words = r"\w[\w']*"
-regex_sentence = r'[^.?!]*(?<=[.?\s!,])%s(?=[\s,.?!])[^.?!]*[.?!]'
 
 yes = {'yes', 'y', 'ye'}
 articles = ['a', 'about', 'above', 'across', 'after', 'against', 'all', 'along', 'among', 'around', 'an', 'and', 'are',
@@ -21,10 +30,14 @@ articles = ['a', 'about', 'above', 'across', 'after', 'against', 'all', 'along',
             ]
 
 
-# regex_sentence = r'([^.]*\b%s\b[^.]*)'
-
-
 def read_files(document):
+    """
+    Read the given document and parse out all the words in the file into a list of words.
+
+    :param document: The name of the document to open and read
+    :return: Return a dictionary containing the document name, the list of words, and the full text
+    """
+
     with open(document, 'r') as input_file:
         data = input_file.read().replace('\n', '').lower()
     words = re.findall(regex_words, data)  # This finds words in the document
@@ -34,9 +47,14 @@ def read_files(document):
 
 
 def most_common(word_list, flag):
-    word_count = Counter(word_list)
+    """
+    Given a list of words, count how many times each word appears.
 
-    print(word_count.most_common(10))
+    :param word_list: A list of all the words in the given texts.
+    :param flag: Boolean flag that deepicts whether or not to include articles, prepositions, etc in result
+    :return: A dictionary containing each word and the number of times it appears
+    """
+    word_count = Counter(word_list)
 
     if not flag:
         for item in articles:
@@ -46,7 +64,15 @@ def most_common(word_list, flag):
 
 
 def build_dictionary(word_list, count):
-    # TODO: EXACT MATCHES ONLY
+    """
+    Create the final output dictionary that will have each word, the number of times the word appears in the text,
+    each document the word appears in, and each sentence that contains the word.
+
+    :param word_list: A list of dictionaries that contain the document, list of words, and the text
+    :param count: A dictionary containing each word and the number of times it appears
+    :return: A sorted list of dictionaries containing the word, count, documents the word appears in, and each sentence
+    with the word.
+    """
     entities = []
     for key, value in count.items():
         values = dict()
@@ -60,8 +86,6 @@ def build_dictionary(word_list, count):
                 sentences.extend(
                     s for s in docs['data'] if
                     ' ' + key + ' ' in s or ' ' + key + ',' in s or s.endswith(' ' + key) or s.startswith(key + ' '))
-                # split = docs['data'].split('.')
-                # sentences.extend(re.findall(regex_sentence % key, docs['data']))
         values['documents'] = temp.lstrip(',')
         values['sentences'] = sentences
         entities.append(values)
@@ -69,7 +93,25 @@ def build_dictionary(word_list, count):
     return sorted(entities, key=itemgetter('count'), reverse=True)
 
 
+def print_dataframe(list):
+    """
+    Print the word, count, documents, and sentences to the screen using the pandas dataframs
+
+    :param list: A sorted list of dictionaries containing the word, count, documents the word appears in, and each sentence
+    with the word.
+    """
+    df = pd.DataFrame.from_dict(list)
+    print(df[['word', 'count', 'documents', 'sentences']])
+
+
 def write_to_csv(list):
+    """
+    Write the list of words to a csv file separating the list into columns by their keys. This csv file will be located
+    in the current directory under the name output.csv.
+
+    :param list: A sorted list of dictionaries containing the word, count, documents the word appears in, and each sentence
+    with the word.
+    """
     keys = list[0].keys()
     for values in list:
         values['sentences'] = '\n'.join(values['sentences'])
@@ -94,11 +136,9 @@ if __name__ == '__main__':
         doc = read_files(directory + '/' + document)
         words.extend(doc['words'])
         word_list.append(doc)
-    count = most_common(words, flag)
 
+    count = most_common(words, flag)
     values = build_dictionary(word_list, count)
 
-    df = pd.DataFrame.from_dict(values)
-    print(df[['word', 'count', 'documents', 'sentences']])
-
+    print_dataframe(values)
     write_to_csv(values)
