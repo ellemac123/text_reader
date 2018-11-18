@@ -16,7 +16,7 @@ articles = ['a', 'about', 'above', 'across', 'after', 'against', 'all', 'along',
             'our', 'ours', 'or', 'over', 'past', 'regarding', 'since', 'so', 'she', 'than', 'that', 'this',
             'then', 'the', 'they', 'their', 'theirs', 'there',
             'these', 'through', 'throughout', 'to', 'toward', 'under', 'underneath', 'until', 'up', 'upon', 'us', 'was',
-            'we', 'what', 'who', 'when', 'where', 'why', 'will', 'with', 'within', 'without' 'would', 'you'
+            'we', 'what', 'who', 'when', 'where', 'why', 'will', 'with', 'within', 'without' 'would', 'you', 'your'
             ]
 
 
@@ -65,17 +65,15 @@ def build_dictionary(word_list, count):
         values['sentences'] = sentences
         entities.append(values)
 
-    return entities
+    return sorted(entities, key=itemgetter('count'), reverse=True)
 
 
 def print_table(list):
-    print("{:<8} {:<15} {:<10}".format('Word', 'Count', 'Documents'))
-
-    list = sorted(list, key=itemgetter('count'), reverse=True)
+    print("{:<10} {:<15} {:<10}".format('Word (#)', 'Documents', 'Sentences'))
 
     for key in list:
-        print(key)
-
+        print("{:<10} {:<15} {:<10}".format(key['word'] + ' (' + str(key['count']) + ')', key['documents'], '\t\n'.join(key['sentences'])))
+        print("\n")
 
 if __name__ == '__main__':
     directory = 'test_docs'
@@ -96,5 +94,11 @@ if __name__ == '__main__':
 
     values = build_dictionary(word_list, count)
 
-    print_table(values)
+    # print_table(values)
+
+    # printTable(values, sep='\n')
+
     # print(pd.DataFrame(values))
+
+    df=pd.DataFrame.from_dict(values)
+    print(df[['word', 'count', 'documents', 'sentences']])
