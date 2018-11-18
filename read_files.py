@@ -3,6 +3,7 @@ import re
 from collections import Counter
 import pandas as pd
 from operator import itemgetter
+import csv
 
 regex_words = r"\w[\w']*"
 regex_sentence = r'[^.?!]*(?<=[.?\s!,])%s(?=[\s,.?!])[^.?!]*[.?!]'
@@ -68,12 +69,15 @@ def build_dictionary(word_list, count):
     return sorted(entities, key=itemgetter('count'), reverse=True)
 
 
-def print_table(list):
-    print("{:<10} {:<15} {:<10}".format('Word (#)', 'Documents', 'Sentences'))
+def write_to_csv(list):
+    keys = list[0].keys()
+    for values in list:
+        values['sentences'] = '\n'.join(values['sentences'])
+    with open('output.csv', 'w') as output_file:
+        writer = csv.DictWriter(output_file, keys)
+        writer.writeheader()
+        writer.writerows(list)
 
-    for key in list:
-        print("{:<10} {:<15} {:<10}".format(key['word'] + ' (' + str(key['count']) + ')', key['documents'], '\t\n'.join(key['sentences'])))
-        print("\n")
 
 if __name__ == '__main__':
     directory = 'test_docs'
@@ -94,11 +98,7 @@ if __name__ == '__main__':
 
     values = build_dictionary(word_list, count)
 
-    # print_table(values)
-
-    # printTable(values, sep='\n')
-
-    # print(pd.DataFrame(values))
-
-    df=pd.DataFrame.from_dict(values)
+    df = pd.DataFrame.from_dict(values)
     print(df[['word', 'count', 'documents', 'sentences']])
+
+    write_to_csv(values)
