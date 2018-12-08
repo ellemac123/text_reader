@@ -14,8 +14,9 @@ from collections import Counter
 import pandas as pd
 from operator import itemgetter
 import csv
+import multiprocessing
 
-regex_words = r"\w[\w']*"
+regex_words = r"\w[\w']*" # word characters
 
 yes = {'yes', 'y', 'ye', 'yea'}
 
@@ -133,13 +134,30 @@ if __name__ == '__main__':
     else:
         flag = False
 
+    docs = []
     for document in os.listdir(directory):
-        doc = read_files(directory + '/' + document)
-        words.extend(doc['words'])
-        word_list.append(doc)
+        docs.append(directory + '/' + document)
+
+    pool = multiprocessing.Pool(processes=4)
+
+    word_list = pool.map(read_files, docs)
+
+    for w in word_list:
+        words.extend(w['words'])
 
     count = most_common(words, flag)
     values = build_dictionary(word_list, count)
 
     print_dataframe(values)
     write_to_csv(values)
+
+    # for document in os.listdir(directory):
+    #     doc = read_files(directory + '/' + document)
+    #     words.extend(doc['words'])
+    #     word_list.append(doc)
+
+    # count = most_common(words, flag)
+    # values = build_dictionary(word_list, count)
+    #
+    # print_dataframe(values)
+    # write_to_csv(values)
